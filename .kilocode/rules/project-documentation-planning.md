@@ -24,6 +24,12 @@ This rule set focuses on ensuring proper documentation and planning before imple
 - The `description.md` should include: project purpose, target audience, key features, technology stack, and setup instructions.
 - The `plan.md` should include: task breakdown, estimated effort, risks, and validation criteria.
 
+## Changelog management
+- After completing any fix, feature, or refactoring, create a changelog entry in the `changelogs/` directory.
+- Changelog file naming format: `MM-DD-YY_HH-MM-SS_{name_of_change}.md`
+- Each changelog should include: date, description, root cause (for fixes), changes made, files changed, and testing notes.
+- Commit changelogs separately or with the related code changes.
+
 ## Other guidelines
 - Keep documentation up-to-date as the project evolves.
 - Use version control for documentation files to track changes.
