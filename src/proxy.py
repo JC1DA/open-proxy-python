@@ -125,9 +125,19 @@ class ProxyForwarder:
 
     async def handle_connect(self, request: Request) -> Response:
         """Handle HTTP CONNECT tunneling for HTTPS proxying."""
-        # Extract host and port from request line (FastAPI doesn't expose it directly)
-        # The path in a CONNECT request is "host:port"
-        target = request.url.path.lstrip("/")
+        # Extract host:port from CONNECT request target
+        # For CONNECT requests, the target is in request.scope['raw_path'] or request.url.path
+        # The raw_path contains the URL-encoded target like "google.com%3A443"
+        import urllib.parse
+        
+        # Try raw_path first (contains encoded target)
+        raw_path = request.scope.get('raw_path', b'').decode('utf-8')
+        if not raw_path:
+            # Fallback to url.path
+            raw_path = request.url.path.lstrip("/")
+        
+        target = urllib.parse.unquote(raw_path)
+        
         if not target:
             raise HTTPException(
                 status_code=400,
