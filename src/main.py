@@ -5,6 +5,7 @@ import logging
 
 from .config import settings
 from .proxy import forwarder, extract_target_url, ProxyForwarder
+from .middleware import AuthenticationMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Authentication middleware (if enabled)
+if settings.auth_enabled:
+    app.add_middleware(AuthenticationMiddleware)
 
 
 @app.get("/health")

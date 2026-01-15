@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     max_redirects: int = int(os.getenv("MAX_REDIRECTS", "10"))
     verify_ssl: bool = os.getenv("VERIFY_SSL", "true").lower() == "true"
 
+    # Authentication
+    auth_enabled: bool = os.getenv("AUTH_ENABLED", "false").lower() == "true"
+    users_file: str = os.getenv("USERS_FILE", "config/users.json")
+    auth_realm: str = os.getenv("AUTH_REALM", "Open Proxy")
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

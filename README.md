@@ -6,6 +6,7 @@ A FastAPI HTTP/HTTPS proxy server compatible with Python's `requests` library `p
 
 - HTTP/HTTPS forwarding with support for all HTTP methods
 - Compatible with `requests` library `proxies` parameter
+- **Basic Authentication support** (validate against users.json)
 - CORS enabled for browser clients
 - Configurable via environment variables
 - Health endpoint for monitoring
@@ -72,6 +73,9 @@ Environment variables:
 - `ALLOWED_ORIGINS` - CORS origins (default: `*`)
 - `FORWARD_TIMEOUT` - Timeout in seconds (default: `30.0`)
 - `VERIFY_SSL` - Verify SSL certificates (default: `true`)
+- `AUTH_ENABLED` - Enable Basic Authentication (default: `false`)
+- `USERS_FILE` - Path to users.json file (default: `config/users.json`)
+- `AUTH_REALM` - Authentication realm (default: `Open Proxy`)
 
 ## API Endpoints
 

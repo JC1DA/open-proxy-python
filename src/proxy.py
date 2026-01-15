@@ -43,7 +43,7 @@ class ProxyForwarder:
             "connection",
             "keep-alive",
             "proxy-authenticate",
-            "proxy-authorization",
+            "proxy-authorization",  # Remove proxy authorization before forwarding
             "te",
             "trailers",
             "transfer-encoding",
