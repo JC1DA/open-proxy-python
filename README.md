@@ -1,6 +1,82 @@
 # Open Proxy Python
 
-A Python project for open proxy functionality.
+A FastAPI HTTP/HTTPS proxy server compatible with Python's `requests` library `proxies` argument.
+
+## Features
+
+- HTTP/HTTPS forwarding with support for all HTTP methods
+- Compatible with `requests` library `proxies` parameter
+- CORS enabled for browser clients
+- Configurable via environment variables
+- Health endpoint for monitoring
+- Async forwarding using `httpx`
+
+## Installation
+
+1. Install [uv](https://github.com/astral-sh/uv) if not already installed:
+   ```bash
+   pip install uv
+   ```
+
+2. Install dependencies:
+   ```bash
+   uv sync
+   ```
+
+## Quick Start
+
+Start the proxy server:
+
+```bash
+uvicorn src.main:app --reload
+```
+
+The server will run on `http://localhost:8000`.
+
+### Usage with Requests Library
+
+```python
+import requests
+
+proxies = {
+    'http': 'http://localhost:8000',
+    'https': 'http://localhost:8000',
+}
+
+# Make a request through the proxy
+response = requests.get(
+    'https://httpbin.org/get',
+    proxies=proxies,
+    headers={'X-Target-URL': 'https://httpbin.org/get'}
+)
+print(response.json())
+```
+
+### Direct API Usage
+
+You can also use the proxy directly via HTTP:
+
+```bash
+curl -X GET \
+  -H "X-Target-URL: https://httpbin.org/get" \
+  http://localhost:8000/proxy
+```
+
+## Configuration
+
+Environment variables:
+
+- `PROXY_HOST` - Bind host (default: `0.0.0.0`)
+- `PROXY_PORT` - Bind port (default: `8000`)
+- `LOG_LEVEL` - Logging level (default: `info`)
+- `ALLOWED_ORIGINS` - CORS origins (default: `*`)
+- `FORWARD_TIMEOUT` - Timeout in seconds (default: `30.0`)
+- `VERIFY_SSL` - Verify SSL certificates (default: `true`)
+
+## API Endpoints
+
+- `GET /health` - Health check
+- `ANY /{path}` - Proxy endpoint (requires `X-Target-URL` header or `target_url` query parameter)
 
 ## Development Setup
 
