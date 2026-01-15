@@ -1,5 +1,5 @@
 ## Brief overview
-This rule set focuses on ensuring proper documentation and planning before implementing new projects or features. It mandates creating a description.md file for project documentation and a plan.md file for detailed planning before any implementation work begins.
+This rule set focuses on ensuring proper documentation and planning before implementing new projects or features. It mandates creating a description.md file for project documentation and plan files in the `plans/` directory for detailed planning before any implementation work begins.
 
 ## Communication style
 - When the user requests to create a project or add new features, always confirm the need for documentation and planning.
@@ -8,9 +8,8 @@ This rule set focuses on ensuring proper documentation and planning before imple
 
 ## Development workflow
 - Before starting implementation of any new project or feature, create or update `description.md` with project overview, goals, and scope.
-- Create or update `plan.md` with a detailed step-by-step plan, including architecture, dependencies, and timeline.
+- Create a detailed step-by-step plan in the `plans/` directory with a descriptive filename (e.g., `feature-name.md`).
 - Ensure the plan is reviewed and approved by the user before proceeding to implementation.
-- Place documentation files in the project root or a dedicated `/docs` directory, as appropriate.
 - Use markdown formatting for readability.
 
 ## Coding best practices
@@ -22,7 +21,7 @@ This rule set focuses on ensuring proper documentation and planning before imple
 - This rule applies to all new projects and major feature additions within existing projects.
 - For minor changes or bug fixes, documentation may be limited to commit messages and inline comments.
 - The `description.md` should include: project purpose, target audience, key features, technology stack, and setup instructions.
-- The `plan.md` should include: task breakdown, estimated effort, risks, and validation criteria.
+- Plan files in `plans/` directory should include: task breakdown, risks, and validation criteria.
 
 ## Changelog management
 - After completing any fix, feature, or refactoring, create a changelog entry in the `changelogs/` directory.
