@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from starlette.middleware.base import BaseHTTPMiddleware
 import logging
 
 from .config import settings
@@ -8,6 +9,8 @@ from .proxy import forwarder, extract_target_url, ProxyForwarder
 from .middleware import AuthenticationMiddleware
 
 logger = logging.getLogger(__name__)
+# setting logging level to info
+logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO))
 
 app = FastAPI(
     title="Open Proxy Python",
@@ -35,9 +38,48 @@ async def health() -> dict:
     return {"status": "ok", "service": "open-proxy-python"}
 
 
-@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"])
+class ProxyMiddleware(BaseHTTPMiddleware):
+    """Middleware to handle X-Target-URL header for proxy requests."""
+    
+    async def dispatch(self, request: Request, call_next):
+        # Skip non-proxy requests (health check, etc.)
+        if request.url.path.startswith("/health"):
+            return await call_next(request)
+        
+        # Handle CONNECT separately
+        if request.method == "CONNECT":
+            logger.info("CONNECT request detected, path: %s", request.url.path)
+            return await forwarder.handle_connect(request)
+        
+        # Check if X-Target-URL header is present
+        target_url = request.headers.get("X-Target-URL")
+        if target_url:
+            logger.info("Proxy request with X-Target-URL: %s", target_url)
+            if not target_url.startswith(('http://', 'https://')):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Target URL must start with http:// or https://",
+                )
+            return await forwarder.forward_request(request, target_url)
+        
+        # Let the route handler deal with forward proxy requests
+        return await call_next(request)
+
+
+# Add the proxy middleware first
+app.add_middleware(ProxyMiddleware)
+
+
+@app.api_route("/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS", "CONNECT"])
 async def proxy(request: Request, path: str):
-    """Catch-all proxy route."""
+    """Catch-all proxy route for forward proxy requests."""
+    logger.info("Proxy request: %s %s", request.method, request.url.path)
+    
+    # Handle CONNECT separately
+    if request.method == "CONNECT":
+        logger.info("CONNECT request detected, path: %s", path)
+        return await forwarder.handle_connect(request)
+    
     target_url = extract_target_url(request)
     if not target_url:
         # If no target URL provided, return error
