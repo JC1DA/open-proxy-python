@@ -53,7 +53,7 @@ class ProxyMiddleware(BaseHTTPMiddleware):
         
         # Handle CONNECT separately
         if request.method == "CONNECT":
-            logger.info("CONNECT request detected, path: %s", request.url.path)
+            logger.info("CONNECT request detected - not supported")
             return await forwarder.handle_connect(request)
         
         # Check if X-Target-URL header is present
@@ -82,7 +82,7 @@ async def proxy(request: Request, path: str):
     
     # Handle CONNECT separately
     if request.method == "CONNECT":
-        logger.info("CONNECT request detected, path: %s", path)
+        logger.info("CONNECT request detected in route handler - not supported")
         return await forwarder.handle_connect(request)
     
     target_url = extract_target_url(request)

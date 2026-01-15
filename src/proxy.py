@@ -124,57 +124,26 @@ class ProxyForwarder:
         )
 
     async def handle_connect(self, request: Request) -> Response:
-        """Handle HTTP CONNECT tunneling for HTTPS proxying."""
-        # Extract host:port from CONNECT request target
-        # For CONNECT requests, the target is in request.scope['raw_path'] or request.url.path
-        # The raw_path contains the URL-encoded target like "google.com%3A443"
-        import urllib.parse
+        """Handle HTTP CONNECT tunneling for HTTPS proxying.
         
-        # Try raw_path first (contains encoded target)
-        raw_path = request.scope.get('raw_path', b'').decode('utf-8')
-        if not raw_path:
-            # Fallback to url.path
-            raw_path = request.url.path.lstrip("/")
+        Note: CONNECT tunneling is not supported by this proxy because FastAPI/uvicorn
+        does not support protocol upgrades. Instead, use the X-Target-URL header to
+        forward HTTPS requests directly.
         
-        target = urllib.parse.unquote(raw_path)
-        
-        if not target:
-            raise HTTPException(
-                status_code=400,
-                detail="CONNECT request must specify host:port",
+        Example:
+            requests.get(
+                "http://proxy:8000",
+                headers={'X-Target-URL': 'https://example.com'}
             )
-        
-        # URL decode the target (colon may be encoded as %3A)
-        import urllib.parse
-        target = urllib.parse.unquote(target)
-        
-        # Parse host and port
-        if ":" not in target:
-            host = target
-            port = 443
-        else:
-            host, port_str = target.split(":", 1)
-            try:
-                port = int(port_str)
-            except ValueError:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Invalid port in CONNECT target: {port_str}",
-                )
-        
-        logger.info("CONNECT tunneling to %s:%s", host, port)
-        
-        # For now, we just return 200 to let the client think tunneling is established.
-        # Actual tunneling is not implemented because FastAPI does not support raw socket upgrade.
-        # This will allow HTTPS proxying but the tunnel will be broken after 200.
-        # In production, you'd need to use an ASGI server that supports raw socket upgrade.
-        return Response(
-            content=None,
-            status_code=200,
-            headers={
-                "Connection": "keep-alive",
-                "Proxy-Agent": "Open Proxy Python",
-            },
+        """
+        logger.warning("CONNECT method not supported - use X-Target-URL header instead")
+        raise HTTPException(
+            status_code=501,
+            detail=(
+                "CONNECT method is not supported. "
+                "To proxy HTTPS requests, use the X-Target-URL header instead. "
+                "Example: requests.get('http://proxy:8000', headers={'X-Target-URL': 'https://example.com'})"
+            ),
         )
 
     async def close(self):

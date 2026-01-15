@@ -5,12 +5,14 @@ A FastAPI HTTP/HTTPS proxy server compatible with Python's `requests` library `p
 ## Features
 
 - HTTP/HTTPS forwarding with support for all HTTP methods
-- Compatible with `requests` library `proxies` parameter
+- Compatible with `requests` library via `X-Target-URL` header
 - **Basic Authentication support** (validate against users.json)
 - CORS enabled for browser clients
 - Configurable via environment variables
 - Health endpoint for monitoring
 - Async forwarding using `httpx`
+
+**Note:** HTTPS requests are supported via the `X-Target-URL` header. The CONNECT method is not supported.
 
 ## Installation
 
@@ -36,22 +38,37 @@ The server will run on `http://localhost:8000`.
 
 ### Usage with Requests Library
 
+#### HTTP Requests
+
+For HTTP requests, you can use the `proxies` parameter:
+
 ```python
 import requests
 
 proxies = {
     'http': 'http://localhost:8000',
-    'https': 'http://localhost:8000',
 }
 
-# Make a request through the proxy
+response = requests.get('http://httpbin.org/get', proxies=proxies)
+print(response.json())
+```
+
+#### HTTPS Requests
+
+For HTTPS requests, use the `X-Target-URL` header instead of the `proxies` parameter:
+
+```python
+import requests
+
+# Make an HTTPS request through the proxy
 response = requests.get(
-    'https://httpbin.org/get',
-    proxies=proxies,
+    'http://localhost:8000',
     headers={'X-Target-URL': 'https://httpbin.org/get'}
 )
 print(response.json())
 ```
+
+**Note:** The CONNECT method is not supported. Use the `X-Target-URL` header for HTTPS requests.
 
 ### Direct API Usage
 
