@@ -1,0 +1,49 @@
+# Ruff configuration
+# See https://docs.astral.sh/ruff/configuration/
+
+line-length = 120
+
+# Python version to target
+target-version = "py311"
+
+# Enable all available rules
+select = ["ALL"]
+
+# Exclude rules that are too strict or not needed
+ignore = [
+    # Allow unused imports in __init__.py
+    "F401",
+    # Allow line too long for URLs
+    "E501",
+    # Allow trailing whitespace in comments
+    "W291",
+    # Allow missing docstrings
+    "D",
+    # Allow unused variables (maybe temporary)
+    "F841",
+]
+
+# Formatting options
+[format]
+# Use spaces for indentation
+indent-style = "space"
+# Use double quotes for strings
+quote-style = "double"
+
+# Lint options
+[lint]
+# Treat all warnings as errors
+# isort = "error"
+# flake8 = "error"
+# pyupgrade = "error"
+
+# Exclude directories
+exclude = [
+    ".git",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "*.egg-info",
+]
