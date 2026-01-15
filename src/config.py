@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     users_file: str = os.getenv("USERS_FILE", "config/users.json")
     auth_realm: str = os.getenv("AUTH_REALM", "Open Proxy")
 
+    # Rate Limiting
+    rate_limit_enabled: bool = os.getenv("RATE_LIMIT_ENABLED", "false").lower() == "true"
+
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"

@@ -1,5 +1,17 @@
 {
-    "alice": "password123",
-    "bob": "secret456",
-    "admin": "admin"
+    "alice": {
+        "password": "password123",
+        "rate_limit_per_minute": 60,
+        "rate_limit_per_month": 10000
+    },
+    "bob": {
+        "password": "secret456",
+        "rate_limit_per_minute": 30,
+        "rate_limit_per_month": 5000
+    },
+    "admin": {
+        "password": "admin",
+        "rate_limit_per_minute": 120,
+        "rate_limit_per_month": 50000
+    }
 }

@@ -3,26 +3,50 @@
 import json
 import logging
 import base64
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 from .config import settings
 
 logger = logging.getLogger(__name__)
 
+# Default rate limits
+DEFAULT_RATE_LIMIT_PER_MINUTE = 60
+DEFAULT_RATE_LIMIT_PER_MONTH = 10000
+
 
 class UserManager:
-    """Manages user credentials loaded from a JSON file."""
+    """Manages user credentials and rate limits loaded from a JSON file."""
 
     def __init__(self, users_file: str) -> None:
         self.users_file = users_file
-        self.users: Dict[str, str] = {}
+        self.users: Dict[str, Dict[str, Any]] = {}
         self._load_users()
 
     def _load_users(self) -> None:
         """Load users from JSON file."""
         try:
             with open(self.users_file, "r") as f:
-                self.users = json.load(f)
+                raw_users = json.load(f)
+            
+            # Process users - support both old and new format
+            for username, data in raw_users.items():
+                if isinstance(data, str):
+                    # Old format: "username": "password"
+                    self.users[username] = {
+                        "password": data,
+                        "rate_limit_per_minute": DEFAULT_RATE_LIMIT_PER_MINUTE,
+                        "rate_limit_per_month": DEFAULT_RATE_LIMIT_PER_MONTH,
+                    }
+                elif isinstance(data, dict):
+                    # New format: "username": {"password": "...", "rate_limit_per_minute": X, ...}
+                    self.users[username] = {
+                        "password": data.get("password", ""),
+                        "rate_limit_per_minute": data.get("rate_limit_per_minute", DEFAULT_RATE_LIMIT_PER_MINUTE),
+                        "rate_limit_per_month": data.get("rate_limit_per_month", DEFAULT_RATE_LIMIT_PER_MONTH),
+                    }
+                else:
+                    logger.warning("Invalid user data format for user %s", username)
+            
             logger.info("Loaded %d users from %s", len(self.users), self.users_file)
         except FileNotFoundError:
             logger.warning("Users file %s not found, no users loaded", self.users_file)
@@ -39,15 +63,38 @@ class UserManager:
         if not self.users:
             logger.warning("No users loaded, authentication disabled")
             return False
-        stored_password = self.users.get(username)
-        if stored_password is None:
+        
+        user_data = self.users.get(username)
+        if user_data is None:
             logger.debug("User %s not found", username)
             return False
+        
+        stored_password = user_data.get("password", "")
         if stored_password != password:
             logger.debug("Invalid password for user %s", username)
             return False
+        
         logger.debug("Authentication successful for user %s", username)
         return True
+
+    def get_user_rate_limits(self, username: str) -> Tuple[int, int]:
+        """Get rate limits for a user.
+        
+        Returns:
+            Tuple of (per_minute, per_month)
+        """
+        user_data = self.users.get(username)
+        if user_data is None:
+            return DEFAULT_RATE_LIMIT_PER_MINUTE, DEFAULT_RATE_LIMIT_PER_MONTH
+        
+        return (
+            user_data.get("rate_limit_per_minute", DEFAULT_RATE_LIMIT_PER_MINUTE),
+            user_data.get("rate_limit_per_month", DEFAULT_RATE_LIMIT_PER_MONTH),
+        )
+
+    def user_exists(self, username: str) -> bool:
+        """Check if a user exists."""
+        return username in self.users
 
 
 class BasicAuthParser:
@@ -97,3 +144,27 @@ def authenticate_request(auth_header: Optional[str]) -> bool:
     username, password = credentials
     user_manager = get_user_manager()
     return user_manager.validate_credentials(username, password)
+
+
+def get_authenticated_username(auth_header: Optional[str]) -> Optional[str]:
+    """Get username from authentication header if valid.
+    
+    Returns the username if authentication is successful, None otherwise.
+    """
+    if not settings.auth_enabled:
+        return None
+    
+    if not auth_header:
+        return None
+    
+    credentials = BasicAuthParser.parse_header(auth_header)
+    if not credentials:
+        return None
+    
+    username, password = credentials
+    user_manager = get_user_manager()
+    
+    if user_manager.validate_credentials(username, password):
+        return username
+    
+    return None

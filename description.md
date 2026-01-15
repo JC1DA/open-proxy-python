@@ -24,6 +24,8 @@ A lightweight FastAPI server that acts as an HTTP/HTTPS forwarding proxy, compat
 3. **CORS Support**: Enable cross-origin requests for browser-based clients.
 4. **Basic Logging**: Log request details for debugging.
 5. **Health Endpoint**: Simple endpoint to verify server status.
+6. **Per-User Rate Limiting**: Configure request limits per user (requests/minute and requests/month).
+7. **Basic Authentication**: Optional authentication with configurable user credentials.
 
 ## Technology Stack
 
@@ -85,11 +87,35 @@ Configuration can be done via environment variables:
 - `PROXY_PORT`: Bind port (default: `8000`)
 - `LOG_LEVEL`: Logging level (default: `info`)
 - `ALLOWED_ORIGINS`: CORS origins (default: `*`)
+- `AUTH_ENABLED`: Enable authentication (default: `false`)
+- `RATE_LIMIT_ENABLED`: Enable rate limiting (default: `false`)
+- `USERS_FILE`: Path to users.json file (default: `config/users.json`)
+
+### Rate Limiting
+
+Rate limiting is configured per-user in `config/users.json`:
+
+```json
+{
+    "alice": {
+        "password": "password123",
+        "rate_limit_per_minute": 60,
+        "rate_limit_per_month": 10000
+    }
+}
+```
+
+Response headers include:
+- `X-RateLimit-Limit-Minute`
+- `X-RateLimit-Remaining-Minute`
+- `X-RateLimit-Limit-Month`
+- `X-RateLimit-Remaining-Month`
+
+Exceeded limits return HTTP 429 with `Retry-After` header.
 
 ## Future Enhancements
 
-- Authentication support (API key, basic auth)
-- Rate limiting
 - Request/response modification hooks
 - Metrics and monitoring endpoints
 - Docker containerization
+- Redis-backed distributed rate limiting

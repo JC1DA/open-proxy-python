@@ -7,6 +7,7 @@ import logging
 from .config import settings
 from .proxy import forwarder, extract_target_url, ProxyForwarder
 from .middleware import AuthenticationMiddleware
+from .ratelimit_middleware import RateLimitMiddleware
 
 logger = logging.getLogger(__name__)
 # setting logging level to info
@@ -30,6 +31,10 @@ app.add_middleware(
 # Authentication middleware (if enabled)
 if settings.auth_enabled:
     app.add_middleware(AuthenticationMiddleware)
+
+# Rate limiting middleware (if enabled)
+if settings.rate_limit_enabled:
+    app.add_middleware(RateLimitMiddleware)
 
 
 @app.get("/health")
