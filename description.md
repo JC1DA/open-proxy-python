@@ -82,14 +82,34 @@ open-proxy-python/
 
 ## Configuration
 
-Configuration can be done via environment variables:
-- `PROXY_HOST`: Bind host (default: `0.0.0.0`)
-- `PROXY_PORT`: Bind port (default: `8000`)
-- `LOG_LEVEL`: Logging level (default: `info`)
-- `ALLOWED_ORIGINS`: CORS origins (default: `*`)
-- `AUTH_ENABLED`: Enable authentication (default: `false`)
-- `RATE_LIMIT_ENABLED`: Enable rate limiting (default: `false`)
-- `USERS_FILE`: Path to users.json file (default: `config/users.json`)
+Configuration can be done via environment variables or a `.env` file. The application uses `pydantic-settings` for configuration management, which automatically loads variables from a `.env` file in the project root.
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PROXY_HOST` | `0.0.0.0` | Server bind address |
+| `PROXY_PORT` | `8000` | Server port |
+| `LOG_LEVEL` | `info` | Logging level (debug, info, warning, error, critical) |
+| `DEBUG` | `false` | Debug mode toggle (true/false) |
+| `ALLOWED_ORIGINS` | `*` | Comma-separated list of allowed CORS origins |
+| `FORWARD_TIMEOUT` | `30.0` | Proxy request timeout in seconds |
+| `MAX_REDIRECTS` | `10` | Maximum number of redirect hops |
+| `VERIFY_SSL` | `true` | Whether to verify SSL certificates (true/false) |
+| `AUTH_ENABLED` | `false` | Enable/disable authentication (true/false) |
+| `USERS_FILE` | `config/users.json` | Path to users configuration file |
+| `AUTH_REALM` | `Open Proxy` | Authentication realm name |
+| `RATE_LIMIT_ENABLED` | `false` | Enable/disable rate limiting (true/false) |
+
+### Using .env File
+
+Copy `.env.example` to `.env` and modify the values:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your desired configuration. The `.env` file is automatically ignored by version control.
 
 ### Rate Limiting
 

@@ -106,7 +106,7 @@ async def proxy(request: Request, path: str):
 @app.on_event("startup")
 async def startup_event():
     """Initialize resources on startup."""
-    logger.info("Starting Open Proxy Python server on %s:%s", settings.host, settings.port)
+    logger.info("Starting Open Proxy Python server on %s:%s", settings.proxy_host, settings.proxy_port)
 
 
 @app.on_event("shutdown")

@@ -1,8 +1,8 @@
 """Configuration settings for the proxy server."""
 
-import os
 from typing import List
 
+from pydantic import Field
 from pydantic_settings import BaseSettings
 
 
@@ -10,30 +10,29 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Server configuration
-    host: str = os.getenv("PROXY_HOST", "0.0.0.0")
-    port: int = int(os.getenv("PROXY_PORT", "8000"))
-    log_level: str = os.getenv("LOG_LEVEL", "info")
-    debug: bool = os.getenv("DEBUG", "false").lower() == "true"
+    proxy_host: str = Field(default="0.0.0.0", description="Server bind address")
+    proxy_port: int = Field(default=8000, description="Server port")
+    log_level: str = Field(default="info", description="Logging level (debug, info, warning, error, critical)")
+    debug: bool = Field(default=False, description="Debug mode toggle")
 
     # CORS configuration
-    allowed_origins: List[str] = [
-        origin.strip()
-        for origin in os.getenv("ALLOWED_ORIGINS", "*").split(",")
-        if origin.strip()
-    ]
+    allowed_origins: List[str] = Field(
+        default=["*"],
+        description="Comma-separated list of allowed CORS origins"
+    )
 
     # Proxy behavior
-    forward_timeout: float = float(os.getenv("FORWARD_TIMEOUT", "30.0"))
-    max_redirects: int = int(os.getenv("MAX_REDIRECTS", "10"))
-    verify_ssl: bool = os.getenv("VERIFY_SSL", "true").lower() == "true"
+    forward_timeout: float = Field(default=30.0, description="Proxy request timeout in seconds")
+    max_redirects: int = Field(default=10, description="Maximum number of redirect hops")
+    verify_ssl: bool = Field(default=True, description="Whether to verify SSL certificates")
 
     # Authentication
-    auth_enabled: bool = os.getenv("AUTH_ENABLED", "false").lower() == "true"
-    users_file: str = os.getenv("USERS_FILE", "config/users.json")
-    auth_realm: str = os.getenv("AUTH_REALM", "Open Proxy")
+    auth_enabled: bool = Field(default=False, description="Enable/disable authentication")
+    users_file: str = Field(default="config/users.json", description="Path to users configuration file")
+    auth_realm: str = Field(default="Open Proxy", description="Authentication realm name")
 
     # Rate Limiting
-    rate_limit_enabled: bool = os.getenv("RATE_LIMIT_ENABLED", "false").lower() == "true"
+    rate_limit_enabled: bool = Field(default=False, description="Enable/disable rate limiting")
 
     class Config:
         env_file = ".env"
