@@ -133,6 +133,79 @@ Response headers include:
 
 Exceeded limits return HTTP 429 with `Retry-After` header.
 
+## Basic Authentication
+
+The proxy supports HTTP Basic Authentication for proxy access control. This feature is useful when you need to restrict access to your proxy server.
+
+### Enabling Authentication
+
+To enable authentication, set the `AUTH_ENABLED` environment variable to `true` in your `.env` file:
+
+```bash
+AUTH_ENABLED=true
+```
+
+### User Configuration
+
+Users are configured in the `config/users.json` file. The recommended format includes rate limiting settings per user:
+
+```json
+{
+    "username": {
+        "password": "password123",
+        "rate_limit_per_minute": 60,
+        "rate_limit_per_month": 10000
+    }
+}
+```
+
+For backward compatibility, you can also use the simpler format without rate limits:
+
+```json
+{
+    "username": "password123"
+}
+```
+
+### Usage with Python requests Library
+
+To use the proxy with authentication, provide the `auth` parameter with your credentials:
+
+```python
+import requests
+from requests.auth import HTTPBasicAuth
+
+proxies = {
+    'http': 'http://localhost:8000',
+    'https': 'http://localhost:8000',
+}
+
+response = requests.get(
+    'https://httpbin.org/get',
+    proxies=proxies,
+    auth=HTTPBasicAuth('username', 'password123')
+)
+```
+
+You can also embed credentials directly in the proxy URL:
+
+```python
+# Alternative: Embed credentials directly in the proxy URL
+proxies = {
+    "http": "http://username:password@localhost:8000",
+    "https": "http://username:password@localhost:8000"
+}
+response = requests.get("http://example.com", proxies=proxies)
+```
+
+### How It Works
+
+1. The `requests` library automatically sends the `Proxy-Authorization: Basic <base64-encoded-credentials>` header when the `auth` parameter is provided.
+2. The proxy extracts credentials from the `Proxy-Authorization` header.
+3. The proxy validates the credentials against the users configured in `config/users.json`.
+4. If authentication succeeds, the request is processed normally.
+5. If authentication fails, the proxy returns HTTP 407 Proxy Authentication Required with a `Proxy-Authenticate` header prompting for credentials.
+
 ## Future Enhancements
 
 - Request/response modification hooks
