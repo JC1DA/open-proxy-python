@@ -8,6 +8,7 @@ from .config import settings
 from .proxy import forwarder, extract_target_url, ProxyForwarder
 from .middleware import AuthenticationMiddleware
 from .ratelimit_middleware import RateLimitMiddleware
+from .auth import authenticate_request
 
 logger = logging.getLogger(__name__)
 # setting logging level to info
@@ -64,6 +65,21 @@ class ProxyMiddleware(BaseHTTPMiddleware):
                 raise HTTPException(
                     status_code=400,
                     detail="Target URL must start with http:// or https://",
+                )
+            # Check authentication before forwarding
+            auth_header = request.headers.get("Proxy-Authorization")
+            if not authenticate_request(auth_header):
+                logger.warning("Authentication failed for proxy request to %s", target_url)
+                return JSONResponse(
+                    status_code=407,
+                    content={
+                        "detail": "Proxy authentication required",
+                        "error": "Proxy-Authentication-Required",
+                    },
+                    headers={
+                        "Proxy-Authenticate": f'Basic realm="{settings.auth_realm}"',
+                        "Content-Type": "application/json",
+                    },
                 )
             return await forwarder.forward_request(request, target_url)
         

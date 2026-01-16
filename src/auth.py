@@ -120,10 +120,38 @@ class BasicAuthParser:
 
 
 # Global instances
+def _resolve_users_file() -> str:
+    """Resolve the users file path to an absolute path.
+    
+    Handles both relative and absolute paths, and paths relative to the project root.
+    """
+    import os
+    users_file = settings.users_file
+    
+    # If it's already an absolute path, return as-is
+    if os.path.isabs(users_file):
+        return users_file
+    
+    # If the file exists in the current working directory, use that
+    if os.path.exists(users_file):
+        return os.path.abspath(users_file)
+    
+    # Try to resolve relative to the project root (where this package is located)
+    package_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    project_path = os.path.join(package_dir, users_file)
+    if os.path.exists(project_path):
+        return project_path
+    
+    # Fall back to the original path (will trigger file not found warning)
+    return users_file
+
+
 def get_user_manager() -> UserManager:
     """Create or return a UserManager instance."""
     if not hasattr(get_user_manager, "_instance"):
-        get_user_manager._instance = UserManager(settings.users_file)
+        resolved_path = _resolve_users_file()
+        logger.debug("Loading users from: %s", resolved_path)
+        get_user_manager._instance = UserManager(resolved_path)
     return get_user_manager._instance
 
 
